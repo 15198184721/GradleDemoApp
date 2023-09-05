@@ -1,8 +1,12 @@
 pluginManagement {
     repositories {
+        gradlePluginPortal()
         google()
         mavenCentral()
-        gradlePluginPortal()
+        maven {
+            allowInsecureProtocol(true)
+            url uri('./repo')
+        }
     }
 }
 dependencyResolutionManagement {
@@ -10,7 +14,12 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        maven {
+            allowInsecureProtocol(true)
+            url uri('./repo')
+        }
     }
 }
 rootProject.name = "GradleDemoApp"
 include ':app'
+include ':lib_aggregation_plugins'

@@ -1,6 +1,15 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
+    id 'plugin.method.monitor'
+}
+
+MethodMonitorConfig {
+    logTag = 'methodTag'
+    thresholdTime = 400
+    processPackages = [
+            'com.test.gradledemoapp'
+    ]
 }
 
 android {
