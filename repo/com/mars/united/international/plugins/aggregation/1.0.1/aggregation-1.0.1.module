@@ -1,0 +1,117 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "com.mars.united.international.plugins",
+    "module": "aggregation",
+    "version": "1.0.1",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "7.5"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.environment": "standard-jvm",
+        "org.gradle.jvm.version": 11,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api",
+        "org.jetbrains.kotlin.platform.type": "jvm"
+      },
+      "dependencies": [
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib-jdk8",
+          "version": {
+            "requires": "1.8.0"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "aggregation-1.0.1.jar",
+          "url": "aggregation-1.0.1.jar",
+          "size": 27803,
+          "sha512": "d0564ed5ab916d3f3031259a1e85d7788bf1e9caf2367abcf98b4f5d514fc14b9095c9462ccee56cf7d31f1977d323d80f884316bfdc86b903f0c06b26255389",
+          "sha256": "7c5b74e325d46190a8d4805b20ea1feab66b32e50a9d5c8127a903d8e97fcc14",
+          "sha1": "0486ef43bb6b378dd453be73c1c3b533e8e86788",
+          "md5": "3e3ef5f68e68133e5aa3275cbe0845ca"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.environment": "standard-jvm",
+        "org.gradle.jvm.version": 11,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime",
+        "org.jetbrains.kotlin.platform.type": "jvm"
+      },
+      "dependencies": [
+        {
+          "group": "org.ow2.asm",
+          "module": "asm",
+          "version": {
+            "requires": "9.2"
+          }
+        },
+        {
+          "group": "org.ow2.asm",
+          "module": "asm-util",
+          "version": {
+            "requires": "9.2"
+          }
+        },
+        {
+          "group": "org.ow2.asm",
+          "module": "asm-commons",
+          "version": {
+            "requires": "9.2"
+          }
+        },
+        {
+          "group": "com.android.tools.build",
+          "module": "gradle",
+          "version": {
+            "requires": "7.4.2"
+          }
+        },
+        {
+          "group": "com.android.tools.build",
+          "module": "gradle-api",
+          "version": {
+            "requires": "7.4.2"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib-jdk8",
+          "version": {
+            "requires": "1.8.0"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "aggregation-1.0.1.jar",
+          "url": "aggregation-1.0.1.jar",
+          "size": 27803,
+          "sha512": "d0564ed5ab916d3f3031259a1e85d7788bf1e9caf2367abcf98b4f5d514fc14b9095c9462ccee56cf7d31f1977d323d80f884316bfdc86b903f0c06b26255389",
+          "sha256": "7c5b74e325d46190a8d4805b20ea1feab66b32e50a9d5c8127a903d8e97fcc14",
+          "sha1": "0486ef43bb6b378dd453be73c1c3b533e8e86788",
+          "md5": "3e3ef5f68e68133e5aa3275cbe0845ca"
+        }
+      ]
+    }
+  ]
+}
