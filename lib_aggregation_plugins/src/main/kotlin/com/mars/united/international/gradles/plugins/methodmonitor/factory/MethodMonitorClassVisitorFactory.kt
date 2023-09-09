@@ -15,10 +15,17 @@ abstract class MethodMonitorClassVisitorFactory() :
         classContext: ClassContext,
         nextClassVisitor: ClassVisitor
     ): ClassVisitor {
-        return MethodTimeMonitorClassVisitor(nextClassVisitor)
+        return MethodTimeMonitorClassVisitor(classContext,nextClassVisitor)
     }
 
     override fun isInstrumentable(classData: ClassData): Boolean {
+        // 检查是否在白名单
+        for (processPackage in MethodMonitorConfigHelper.methodMonitorConfig.logWhiteList) {
+            if (classData.className.startsWith(processPackage)) {
+                return false
+            }
+        }
+        // 检查是否需要处理的类
         for (processPackage in MethodMonitorConfigHelper.methodMonitorConfig.processPackages) {
             if (classData.className.startsWith(processPackage)) {
                 LogUtil.logI("需要处理的类：${classData.className}")

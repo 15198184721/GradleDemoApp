@@ -14,7 +14,7 @@ import org.gradle.api.Project
  */
 abstract class BasePlugin<T : Project> : Plugin<T> {
 
-    private lateinit var project: Project
+    protected lateinit var project: Project
 
     /**
      * 插件应用

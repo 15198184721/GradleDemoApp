@@ -1,8 +1,7 @@
 package com.mars.united.international.gradles.plugins.methodmonitor.classvistors.builds
 
+import com.android.build.api.instrumentation.ClassContext
 import com.mars.united.international.gradles.bases.builds.BaseMethodReBuild
-import com.mars.united.international.gradles.plugins.methodmonitor.helper.MethodMonitorConfigHelper
-import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
@@ -17,15 +16,15 @@ import org.objectweb.asm.commons.AdviceAdapter
  *  4、增加日志输出
  */
 class MethodTimeMonitorBuild(
+    private val classContext: ClassContext,
     adapter: AdviceAdapter,
     mv: MethodVisitor
 ) : BaseMethodReBuild<AdviceAdapter>(adapter, mv) {
 
-    // 保存 startTime 的局部变量索引
-    private var startTimeLocal = -1
-
-    //从配置中读取tag
-    val tag = MethodMonitorConfigHelper.methodMonitorConfig.logTag
+    // 当前方法执行的唯一索引字段的id
+    private var currentInvokIndex = -1
+    // 唯一标识和方法之间的分隔符
+    private val splitKey = "|"
 
     override fun onMethodEnter(
         access: Int,
@@ -37,18 +36,86 @@ class MethodTimeMonitorBuild(
         // 输出线程的线程栈
         // Thread.dumpStack()
 
-        // 在onMethodEnter中插入代码 val startTime = System.currentTimeMillis()
+        //---------------------- 开始插入代码 --------------------------------
+        // 在onMethodEnter中插入代码:
+        // String key = this+"_"+ UUID.randomUUID();
+        // MethodMonitorUtils.startMethod(key);
+
+        // 组装唯一标识的key
+        mv.visitTypeInsn(Opcodes.NEW, "java/lang/StringBuilder")
+        mv.visitInsn(Opcodes.DUP)
         mv.visitMethodInsn(
-            Opcodes.INVOKESTATIC,
-            "java/lang/System",
-            "currentTimeMillis",
-            "()J",
+            Opcodes.INVOKESPECIAL,
+            "java/lang/StringBuilder",
+            "<init>",
+            "()V",
             false
         )
-        // 创建一个新的局部变量来保存 startTime
-        startTimeLocal = localAdapter.newLocal(Type.LONG_TYPE)
-        // 插入代码
-        mv.visitVarInsn(Opcodes.LSTORE, startTimeLocal)
+        mv.visitVarInsn(Opcodes.ALOAD, 0)
+        mv.visitMethodInsn(
+            Opcodes.INVOKEVIRTUAL,
+            "java/lang/StringBuilder",
+            "append",
+            "(Ljava/lang/Object;)Ljava/lang/StringBuilder;",
+            false
+        )
+        mv.visitLdcInsn("_")
+        mv.visitMethodInsn(
+            Opcodes.INVOKEVIRTUAL,
+            "java/lang/StringBuilder",
+            "append",
+            "(Ljava/lang/String;)Ljava/lang/StringBuilder;",
+            false
+        )
+        mv.visitMethodInsn(
+            Opcodes.INVOKESTATIC,
+            "java/util/UUID",
+            "randomUUID",
+            "()Ljava/util/UUID;",
+            false
+        )
+        mv.visitMethodInsn(
+            Opcodes.INVOKEVIRTUAL,
+            "java/lang/StringBuilder",
+            "append",
+            "(Ljava/lang/Object;)Ljava/lang/StringBuilder;",
+            false
+        )
+        mv.visitLdcInsn(
+            "${splitKey}${classContext.currentClassData.className}#$name->$descriptor"
+        )
+        mv.visitMethodInsn(
+            Opcodes.INVOKEVIRTUAL,
+            "java/lang/StringBuilder",
+            "append",
+            "(Ljava/lang/String;)Ljava/lang/StringBuilder;",
+            false
+        )
+        mv.visitMethodInsn(
+            Opcodes.INVOKEVIRTUAL,
+            "java/lang/StringBuilder",
+            "toString",
+            "()Ljava/lang/String;",
+            false
+        )
+
+        // 创建一个临时局部变量。将变量引用保存下来
+        // 基础类型可以用：Type.xxx_TYPE 代替
+        currentInvokIndex = localAdapter.newLocal(
+            Type.getType("Ljava.lang.String")
+        )
+        // 将栈顶值赋值给新的变量
+        mv.visitVarInsn(Opcodes.ASTORE, currentInvokIndex)
+        // 加载唯一标识到栈顶，并调用开始统计方法
+        mv.visitVarInsn(Opcodes.ALOAD, currentInvokIndex)
+        mv.visitMethodInsn(
+            Opcodes.INVOKESTATIC,
+            "com/mars/united/international/gradles/plugins/methodmonitor/MethodMonitorUtils",
+            "startMethod",
+            "(Ljava/lang/String;)V",
+            false
+        )
+        //---------------------- 结束插入代码 --------------------------------
     }
 
     override fun onMethodExit(
@@ -59,53 +126,16 @@ class MethodTimeMonitorBuild(
         exceptions: Array<out String>?
     ) {
 
-        // 在onMethodExit中插入代码 Log.e("tag", "Method: $name, timecost: " + (System.currentTimeMillis() - startTime))
-        mv.visitTypeInsn(
-            Opcodes.NEW,
-            "java/lang/StringBuilder"
-        )
-        mv.visitInsn(Opcodes.DUP)
-        mv.visitLdcInsn("$signature Method: $name, methodTime: ")
+        // 插入代码：MethodMonitorUtils.endMethod(key)
+
+        // 将本地变脸key装载到栈顶。并执行统计方法
+        mv.visitVarInsn(Opcodes.ALOAD, currentInvokIndex)
         mv.visitMethodInsn(
-            Opcodes.INVOKESPECIAL,
-            "java/lang/StringBuilder",
-            "<init>",
+            Opcodes.INVOKESTATIC,
+            "com/mars/united/international/gradles/plugins/methodmonitor/MethodMonitorUtils",
+            "endMethod",
             "(Ljava/lang/String;)V",
             false
-        );
-        mv.visitMethodInsn(
-            Opcodes.INVOKESTATIC,
-            "java/lang/System",
-            "currentTimeMillis",
-            "()J",
-            false
-        );
-        mv.visitVarInsn(Opcodes.LLOAD, startTimeLocal)
-        mv.visitInsn(Opcodes.LSUB)
-        mv.visitMethodInsn(
-            Opcodes.INVOKEVIRTUAL,
-            "java/lang/StringBuilder",
-            "append",
-            "(J)Ljava/lang/StringBuilder;",
-            false
-        );
-        mv.visitMethodInsn(
-            Opcodes.INVOKEVIRTUAL,
-            "java/lang/StringBuilder",
-            "toString",
-            "()Ljava/lang/String;",
-            false
-        );
-        mv.visitLdcInsn(tag)
-        mv.visitInsn(Opcodes.SWAP)
-        mv.visitMethodInsn(
-            Opcodes.INVOKESTATIC,
-            "android/util/Log",
-            "e",
-            "(Ljava/lang/String;Ljava/lang/String;)I",
-            false
         )
-        mv.visitInsn(AdviceAdapter.POP)
-
     }
 }

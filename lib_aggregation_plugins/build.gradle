@@ -16,13 +16,17 @@ dependencies {
     //groovy sdk
     implementation localGroovy()
 
-    // ASM框架
+    // gradle 相关api
+    implementation 'com.android.tools.build:gradle:7.4.2'
+    implementation 'com.android.tools.build:gradle-api:7.4.2'
+
+    // ASM框架，主要负责字节码修改
     implementation 'org.ow2.asm:asm:9.2'
     implementation 'org.ow2.asm:asm-util:9.2'
     implementation 'org.ow2.asm:asm-commons:9.2'
 
-    implementation 'com.android.tools.build:gradle:7.4.2'
-    implementation 'com.android.tools.build:gradle-api:7.4.2'
+    // javapoet框架。主要负责代码生成
+    implementation 'com.squareup:javapoet:1.13.0'
 }
 
 publishing {
