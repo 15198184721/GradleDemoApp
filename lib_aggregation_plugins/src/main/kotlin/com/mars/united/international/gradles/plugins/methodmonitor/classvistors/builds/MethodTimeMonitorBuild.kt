@@ -1,6 +1,5 @@
 package com.mars.united.international.gradles.plugins.methodmonitor.classvistors.builds
 
-import com.android.build.api.instrumentation.ClassContext
 import com.mars.united.international.gradles.bases.builds.BaseMethodReBuild
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
@@ -16,7 +15,7 @@ import org.objectweb.asm.commons.AdviceAdapter
  *  4、增加日志输出
  */
 class MethodTimeMonitorBuild(
-    private val classContext: ClassContext,
+    private val className: String,
     adapter: AdviceAdapter,
     mv: MethodVisitor
 ) : BaseMethodReBuild<AdviceAdapter>(adapter, mv) {
@@ -82,7 +81,7 @@ class MethodTimeMonitorBuild(
             false
         )
         mv.visitLdcInsn(
-            "${splitKey}${classContext.currentClassData.className}#$name->$descriptor"
+            "${splitKey}${className}#$name->$descriptor"
         )
         mv.visitMethodInsn(
             Opcodes.INVOKEVIRTUAL,

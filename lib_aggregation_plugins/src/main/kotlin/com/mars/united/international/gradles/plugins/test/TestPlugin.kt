@@ -1,6 +1,5 @@
 package com.mars.united.international.gradles.plugins.test
 
-import com.android.build.api.variant.ApplicationAndroidComponentsExtension
 import com.mars.united.international.gradles.bases.BasePlugin
 import com.mars.united.international.gradles.plugins.methodmonitor.helper.MethodMonitorConfigHelper
 import com.mars.united.international.gradles.plugins.methodmonitor.tasks.AddJavaSourcesGenerateTask
@@ -26,11 +25,6 @@ class TestPlugin : BasePlugin<Project>() {
      */
     private fun testTask() {
         //这里appExtension获取方式与原transform api不同，可自行对比
-        val appVariant = project.extensions.getByType(
-            ApplicationAndroidComponentsExtension::class.java
-        )
-        appVariant.onVariants { variant ->
-            LogUtil.logI("TestPlugin 插件应用成功。。。。。。。")
-        }
+        LogUtil.logI("TestPlugin 插件应用成功。。。。。。。")
     }
 }

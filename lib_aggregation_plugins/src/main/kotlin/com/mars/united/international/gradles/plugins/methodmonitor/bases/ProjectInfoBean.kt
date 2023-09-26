@@ -1,8 +1,5 @@
 package com.mars.united.international.gradles.plugins.methodmonitor.bases
 
-import org.gradle.api.file.Directory
-import org.gradle.api.provider.Provider
-
 /**
  * 保存项目基础信息
  */

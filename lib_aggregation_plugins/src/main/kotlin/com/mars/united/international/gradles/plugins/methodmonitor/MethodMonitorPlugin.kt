@@ -1,13 +1,21 @@
 package com.mars.united.international.gradles.plugins.methodmonitor
 
+import com.android.build.api.variant.Variant
 import com.android.build.gradle.AppExtension
+import com.android.build.gradle.api.ApkVariant
+import com.android.build.gradle.api.ApplicationVariant
+import com.android.tools.build.bundletool.validation.AppBundleValidator
 import com.mars.united.international.gradles.bases.BasePlugin
 import com.mars.united.international.gradles.plugins.methodmonitor.configs.MethodMonitorConfig
 import com.mars.united.international.gradles.plugins.methodmonitor.factory.MethodMonitorTransform
+import com.mars.united.international.gradles.plugins.methodmonitor.generates.GenerateConsumingCalculationFile
 import com.mars.united.international.gradles.plugins.methodmonitor.helper.MethodMonitorConfigHelper
 import com.mars.united.international.gradles.plugins.methodmonitor.tasks.AddJavaSourcesGenerateTask
 import com.mars.united.international.gradles.utils.LogUtil
+import org.gradle.api.Action
+import org.gradle.api.DefaultTask
 import org.gradle.api.Project
+import java.io.File
 
 /**
  * 方法监控插件
@@ -39,44 +47,44 @@ class MethodMonitorPlugin : BasePlugin<Project>() {
      */
     private fun buildGeneratedRelatedVariant() {
         //这里appExtension获取方式与原transform api不同，可自行对比
-        val appVariant = project.extensions.getByType(
-            ApplicationAndroidComponentsExtension::class.java
+        val android = project.extensions.getByType(
+            AppExtension::class.java
         )
-        appVariant.onVariants { variant ->
+        android.applicationVariants.all { variant ->
             if (!MethodMonitorConfigHelper.methodMonitorConfig.isEnableMonitor) {
                 LogUtil.logI("MethodMonitorPlugin 统计功能已禁用!!")
-                return@onVariants
+                return@all
             }
             if (!isDebugType(variant)) {
                 // 非debug编译。放弃处理
                 LogUtil.logI("MethodMonitorPlugin 非debug模式。放弃处理")
-                return@onVariants
+                return@all
             }
-            LogUtil.logI("MethodMonitorPlugin 方法监控配置已生效！！--->\n${MethodMonitorConfigHelper.methodMonitorConfig}")
             // 构建项目基本参数
             MethodMonitorConfigHelper.projectInfo.apply {
                 this.buildType.add(variant.name)
-                this.applicationId = variant.applicationId.get()
+                this.applicationId = variant.applicationId
             }
-
+            variant.addJavaSourceFoldersToModel(
+                project.layout.buildDirectory.dir("generated").get().asFile
+            )
             if (project.tasks.findByName(MethodMonitorConfigHelper.projectInfo.generatendTaskName) != null) {
                 // 任务已经存在。放弃添加
-                return@onVariants
+                return@all
             }
             // 执行生成代码的任务(因为不区分环境。所以名称固定)
-            val addSourceTaskProvider = project.tasks.register(
+            val regTask = project.tasks.register(
                 MethodMonitorConfigHelper.projectInfo.generatendTaskName,
                 AddJavaSourcesGenerateTask::class.java
             ) {
                 it.outputFolder.set(project.layout.buildDirectory.dir("generated"))
+                MethodMonitorConfigHelper.projectInfo.generatendJavaSourcePath =
+                    it.outputFolder.asFile.get().absolutePath
+                // 方法耗时计算代码生成
+                GenerateConsumingCalculationFile(it.generatePackage).generateCode()
             }
-            // 添加源码路径
-            variant.sources.java?.let { java ->
-                // 添加源码目录:addSourceTaskProvider 所设置的
-                java.addGeneratedSourceDirectory(
-                    addSourceTaskProvider,
-                    AddJavaSourcesGenerateTask::outputFolder
-                )
+            regTask.get().doLast {
+                LogUtil.logI("MethodMonitorPlugin 生成代码任务执行完成了")
             }
         }
     }
@@ -91,11 +99,19 @@ class MethodMonitorPlugin : BasePlugin<Project>() {
         }
         // 旧版版的变换器注册
         val android = project.extensions.getByType(AppExtension::class.java)
-        android.registerTransform(MethodMonitorTransform(project))
+        val transform = MethodMonitorTransform(project)
+        android.applicationVariants.all { variant ->
+            if(isDebugType(variant)){
+                return@all
+            }
+            if(!android.transforms.contains(transform)){
+                android.registerTransform(MethodMonitorTransform(project))
+            }
+        }
     }
 
     // 是否为debug模式
-    private fun isDebugType(variant: Variant): Boolean {
-        return variant.buildType == "debug"
+    private fun isDebugType(variant: ApplicationVariant): Boolean {
+        return variant.buildType.isDebuggable
     }
 }

@@ -2,7 +2,6 @@ package com.mars.united.international.gradles.plugins.methodmonitor.factory
 
 import com.android.build.api.transform.*
 import com.android.build.gradle.internal.pipeline.TransformManager
-import com.mars.united.international.gradles.plugins.methodmonitor.classvistors.MethodTimeMonitorClassVisitor
 import com.mars.united.international.gradles.plugins.methodmonitor.classvistors.MethodTimeMonitorOldClassVisitor
 import com.mars.united.international.gradles.plugins.methodmonitor.helper.MethodMonitorConfigHelper
 import com.mars.united.international.gradles.utils.LogUtil
@@ -122,7 +121,9 @@ class MethodMonitorTransform(
                 val classReader = ClassReader(input.readBytes())
                 val classWriter = ClassWriter(classReader, ClassWriter.COMPUTE_MAXS)
 
-                val classVisitor = MethodTimeMonitorOldClassVisitor(classWriter)
+                val classVisitor = MethodTimeMonitorOldClassVisitor(
+                    classReader.className.replace(File.separator, ".")
+                )
                 classReader.accept(classVisitor, EXPAND_FRAMES)
 
                 val fileOutputStream = FileOutputStream(outputPath)

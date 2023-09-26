@@ -1,6 +1,7 @@
 package com.mars.united.international.gradles.plugins.methodmonitor.classvistors
 
 import com.mars.united.international.gradles.plugins.methodmonitor.classvistors.builds.MethodTimeMonitorBuild
+import com.mars.united.international.gradles.plugins.methodmonitor.helper.MethodMonitorConfigHelper
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
@@ -9,9 +10,15 @@ import org.objectweb.asm.commons.AdviceAdapter
 /**
  * 实际方法时间统计的转换器
  */
-class MethodTimeMonitorOldClassVisitor(private val nextVisitor: ClassVisitor) : ClassVisitor(
+class MethodTimeMonitorOldClassVisitor(private val className:String) : ClassVisitor(
     Opcodes.ASM5
 ) {
+
+    private val methodWriteList: MutableList<String> by lazy {
+        MethodMonitorConfigHelper.methodMonitorConfig.logWhiteList.filter {
+            it.contains("#")
+        }.toMutableList()
+    }
 
     override fun visitEnd() {
         super.visitEnd()
@@ -25,15 +32,27 @@ class MethodTimeMonitorOldClassVisitor(private val nextVisitor: ClassVisitor) : 
         exceptions: Array<out String>?
     ): MethodVisitor {
         val methodVisitor = super.visitMethod(access, name, descriptor, signature, exceptions)
-        if (name == "<clinit>" || name == "<init>") {
+        if (name == "<clinit>" && MethodMonitorConfigHelper.methodMonitorConfig.jumpOverClinitMethod) {
+            // 排除Class加载方法
             return methodVisitor
         }
-        println("MethodMonitorPlugin 正在处理方法：$name")
+        if (name == "<init>" && MethodMonitorConfigHelper.methodMonitorConfig.jumpOverConstructionMethod) {
+            // 构造方法
+            return methodVisitor
+        }
+        val currMethod = "${className}#$name"
+        for (processPackage in methodWriteList) {
+            if (currMethod == processPackage) {
+                // 方法白名单，放弃处理
+                return methodVisitor
+            }
+        }
+        println("MethodMonitorPlugin 正在处理方法：${className}#$name")
         val newMethodVisitor =
             object : AdviceAdapter(Opcodes.ASM5, methodVisitor, access, name, descriptor) {
 
                 private val methodBuildUtil: MethodTimeMonitorBuild =
-                    MethodTimeMonitorBuild(this, mv)
+                    MethodTimeMonitorBuild(className, this, mv)
 
                 @Override
                 override fun onMethodEnter() {
