@@ -18,7 +18,6 @@ open class BaseAsmClassNode(params: Int) : ClassNode(params) {
      * @param superName 父类
      * @param interfaces 实现的接口
      */
-
     override fun visit(
         version: Int,
         access: Int,
@@ -28,6 +27,10 @@ open class BaseAsmClassNode(params: Int) : ClassNode(params) {
         interfaces: Array<out String>?
     ) {
         super.visit(version, access, name, signature, superName, interfaces)
+    }
+
+    override fun visitSource(file: String?, debug: String?) {
+        super.visitSource(file, debug)
     }
 
     /**

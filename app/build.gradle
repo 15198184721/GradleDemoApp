@@ -2,11 +2,30 @@ plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
     id 'plugin.method.monitor'
+    id 'plugin.test'
 }
 
 MethodMonitorConfig {
+    // 是否启用统计功能
+//    isEnableMonitor = true
+    // 是否跳过class加载方法
+//    jumpOverClinitMethod = true
+    // 是否跳过构造方法
+//    jumpOverConstructionMethod = true
+    onlyAllowedMainThread = false
+    // 是否需要输出调用栈
+    logPrintCallStack = true
+    // 是否开启日志简略模式(简略模式下详细数据不生效)
+    logAbbreviatedMode = false
+    // 日志筛选模式
+//    logFilterMode = false
+    // 日志tag
     logTag = 'methodTag'
-    thresholdTime = 400
+    // 方法曹氏阈值
+    thresholdTime = 100
+    // 白名单列表(包、class、方法)
+    logWhiteList = []
+    // 计时统计范围定义，只有包含此包下的class才会被处理
     processPackages = [
             'com.test.gradledemoapp'
     ]

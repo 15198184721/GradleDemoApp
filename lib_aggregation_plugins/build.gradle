@@ -27,6 +27,8 @@ dependencies {
     // 旧版本
     implementation 'com.android.tools.build:gradle:4.0.1'
     implementation 'com.android.tools.build:gradle-api:4.0.1'
+    // javapoet框架。主要负责代码生成
+    implementation 'com.squareup:javapoet:1.13.0'
 }
 
 publishing {
