@@ -2,11 +2,12 @@
 
 buildscript {
     ext{
-        plugin_version = "1.0.1"
-        plugin_dev_version = "1.0.1"
+        plugin_version = "1.0.0"
+        plugin_dev_version = "1.0.0"
     }
     dependencies {
-        classpath("com.mars.united.international.plugins:aggregation:${plugin_version}")
+//        classpath("com.mars.united.international.plugins:aggregation:${plugin_version}")
+        classpath("com.mars.united.international.plugins.old:aggregation:${plugin_version}")
     }
 }
 

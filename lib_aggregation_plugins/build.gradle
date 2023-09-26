@@ -21,8 +21,12 @@ dependencies {
     implementation 'org.ow2.asm:asm-util:9.2'
     implementation 'org.ow2.asm:asm-commons:9.2'
 
-    implementation 'com.android.tools.build:gradle:7.4.2'
-    implementation 'com.android.tools.build:gradle-api:7.4.2'
+    // 新版本
+//    implementation 'com.android.tools.build:gradle:7.4.2'
+//    implementation 'com.android.tools.build:gradle-api:7.4.2'
+    // 旧版本
+    implementation 'com.android.tools.build:gradle:4.0.1'
+    implementation 'com.android.tools.build:gradle-api:4.0.1'
 }
 
 publishing {
@@ -41,7 +45,7 @@ publishing {
 
     publications { PublicationContainer publication ->
         maven(MavenPublication) {
-            groupId = "com.mars.united.international.plugins"
+            groupId = "com.mars.united.international.plugins.old"
             artifactId = 'aggregation'
             version = "$plugin_dev_version"
             from components.java
