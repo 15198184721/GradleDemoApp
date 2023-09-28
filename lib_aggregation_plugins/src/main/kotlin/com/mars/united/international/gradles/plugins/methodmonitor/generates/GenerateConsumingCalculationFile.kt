@@ -21,6 +21,9 @@ class GenerateConsumingCalculationFile(
 
     override fun generateCode() {
         val outputFile = File(getSourceFilePackageSaveDir(), javaFileName)
+        if (outputFile.exists()) {
+            return
+        }
         outputFile.parentFile.mkdirs()
         outputFile.writeText(getGenerateFile())
     }

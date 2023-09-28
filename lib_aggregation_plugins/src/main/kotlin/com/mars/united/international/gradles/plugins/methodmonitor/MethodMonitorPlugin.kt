@@ -1,21 +1,14 @@
 package com.mars.united.international.gradles.plugins.methodmonitor
 
-import com.android.build.api.variant.Variant
 import com.android.build.gradle.AppExtension
-import com.android.build.gradle.api.ApkVariant
 import com.android.build.gradle.api.ApplicationVariant
-import com.android.tools.build.bundletool.validation.AppBundleValidator
 import com.mars.united.international.gradles.bases.BasePlugin
 import com.mars.united.international.gradles.plugins.methodmonitor.configs.MethodMonitorConfig
 import com.mars.united.international.gradles.plugins.methodmonitor.factory.MethodMonitorTransform
-import com.mars.united.international.gradles.plugins.methodmonitor.generates.GenerateConsumingCalculationFile
 import com.mars.united.international.gradles.plugins.methodmonitor.helper.MethodMonitorConfigHelper
 import com.mars.united.international.gradles.plugins.methodmonitor.tasks.AddJavaSourcesGenerateTask
 import com.mars.united.international.gradles.utils.LogUtil
-import org.gradle.api.Action
-import org.gradle.api.DefaultTask
 import org.gradle.api.Project
-import java.io.File
 
 /**
  * 方法监控插件
@@ -50,41 +43,42 @@ class MethodMonitorPlugin : BasePlugin<Project>() {
         val android = project.extensions.getByType(
             AppExtension::class.java
         )
-        android.applicationVariants.all { variant ->
-            if (!MethodMonitorConfigHelper.methodMonitorConfig.isEnableMonitor) {
-                LogUtil.logI("MethodMonitorPlugin 统计功能已禁用!!")
-                return@all
-            }
-            if (!isDebugType(variant)) {
-                // 非debug编译。放弃处理
-                LogUtil.logI("MethodMonitorPlugin 非debug模式。放弃处理")
-                return@all
-            }
-            // 构建项目基本参数
-            MethodMonitorConfigHelper.projectInfo.apply {
-                this.buildType.add(variant.name)
-                this.applicationId = variant.applicationId
-            }
-            variant.addJavaSourceFoldersToModel(
-                project.layout.buildDirectory.dir("generated").get().asFile
-            )
-            if (project.tasks.findByName(MethodMonitorConfigHelper.projectInfo.generatendTaskName) != null) {
-                // 任务已经存在。放弃添加
-                return@all
-            }
-            // 执行生成代码的任务(因为不区分环境。所以名称固定)
-            val regTask = project.tasks.register(
-                MethodMonitorConfigHelper.projectInfo.generatendTaskName,
-                AddJavaSourcesGenerateTask::class.java
-            ) {
-                it.outputFolder.set(project.layout.buildDirectory.dir("generated"))
-                MethodMonitorConfigHelper.projectInfo.generatendJavaSourcePath =
-                    it.outputFolder.asFile.get().absolutePath
-                // 方法耗时计算代码生成
-                GenerateConsumingCalculationFile(it.generatePackage).generateCode()
-            }
-            regTask.get().doLast {
-                LogUtil.logI("MethodMonitorPlugin 生成代码任务执行完成了")
+        project.afterEvaluate {
+            LogUtil.logI("MethodMonitorPlugin afterEvaluate配置完成了。要开始执行task了!!")
+            LogUtil.logI("MethodMonitorPlugin 方法监控配置已生效！！--->${MethodMonitorConfigHelper.methodMonitorConfig}")
+            android.applicationVariants.all { variant ->
+                val generatePath = project.layout.buildDirectory
+                    .dir("generated").get()
+                    .dir("methodMonitor")
+                if (!MethodMonitorConfigHelper.methodMonitorConfig.enableMonitor) {
+                    LogUtil.logI("MethodMonitorPlugin 统计功能已禁用!!")
+                    return@all
+                }
+                // 构建项目基本参数
+                MethodMonitorConfigHelper.projectInfo.apply {
+                    this.buildType.add(variant.name)
+                    this.applicationId = variant.applicationId
+                }
+                val taskName =
+                    "${MethodMonitorConfigHelper.projectInfo.generatendTaskName}${variant.name}"
+                if (project.tasks.findByName(taskName) != null) {
+                    // 任务已经存在。放弃添加
+                    return@all
+                }
+                // 执行生成代码的任务(因为不区分环境。所以名称固定)
+                val regTask = project.tasks.register(
+                    taskName,
+                    AddJavaSourcesGenerateTask::class.java
+                ) {
+                    it.outputFolder.set(generatePath)
+                    MethodMonitorConfigHelper.projectInfo.generatendJavaSourcePath =
+                        it.outputFolder.asFile.get().absolutePath
+                }
+                regTask.get().doLast {
+                    LogUtil.logI("MethodMonitorPlugin 生成代码任务执行完成了--》${it.name}")
+                }
+                // 注册生成任务
+                variant.registerJavaGeneratingTask(regTask.get(), generatePath.asFile)
             }
         }
     }
@@ -95,19 +89,10 @@ class MethodMonitorPlugin : BasePlugin<Project>() {
     private fun androidComponentsExtensionVariantBuild() {
         getGradleConfig(MethodMonitorConfig::class.java)?.apply {
             MethodMonitorConfigHelper.methodMonitorConfig = this
-            LogUtil.logI("MethodMonitorPlugin 方法监控配置已生效！！--->${this}")
         }
         // 旧版版的变换器注册
         val android = project.extensions.getByType(AppExtension::class.java)
-        val transform = MethodMonitorTransform(project)
-        android.applicationVariants.all { variant ->
-            if(isDebugType(variant)){
-                return@all
-            }
-            if(!android.transforms.contains(transform)){
-                android.registerTransform(MethodMonitorTransform(project))
-            }
-        }
+        android.registerTransform(MethodMonitorTransform(project))
     }
 
     // 是否为debug模式

@@ -15,12 +15,13 @@ abstract class AddJavaSourcesGenerateTask : DefaultTask() {
     abstract val outputFolder: DirectoryProperty
 
     // 包路径
-    val generatePackage: String by lazy {
+    private val generatePackage: String by lazy {
         MethodMonitorConfigHelper.projectInfo.generatendJavaSourcePackage
     }
 
     @TaskAction
     fun taskAction() {
-
+        // 方法耗时计算代码生成
+        GenerateConsumingCalculationFile(generatePackage).generateCode()
     }
 }

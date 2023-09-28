@@ -3,15 +3,21 @@ package com.mars.united.international.gradles.plugins.methodmonitor.classvistors
 import com.mars.united.international.gradles.plugins.methodmonitor.classvistors.builds.MethodTimeMonitorBuild
 import com.mars.united.international.gradles.plugins.methodmonitor.helper.MethodMonitorConfigHelper
 import org.objectweb.asm.ClassVisitor
+import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.commons.AdviceAdapter
+import org.objectweb.asm.tree.ClassNode
 
 /**
  * 实际方法时间统计的转换器
  */
-class MethodTimeMonitorOldClassVisitor(private val className:String) : ClassVisitor(
-    Opcodes.ASM5
+class MethodTimeMonitorOldClassVisitor(
+    private val className: String,
+    private val oldClassVisitor: ClassVisitor
+) : ClassVisitor(
+    Opcodes.ASM6,
+    oldClassVisitor
 ) {
 
     private val methodWriteList: MutableList<String> by lazy {
@@ -19,6 +25,7 @@ class MethodTimeMonitorOldClassVisitor(private val className:String) : ClassVisi
             it.contains("#")
         }.toMutableList()
     }
+
 
     override fun visitEnd() {
         super.visitEnd()
@@ -47,7 +54,7 @@ class MethodTimeMonitorOldClassVisitor(private val className:String) : ClassVisi
                 return methodVisitor
             }
         }
-        println("MethodMonitorPlugin 正在处理方法：${className}#$name")
+        println("[旧版] MethodMonitorPlugin 正在处理方法：${className}#$name")
         val newMethodVisitor =
             object : AdviceAdapter(Opcodes.ASM5, methodVisitor, access, name, descriptor) {
 

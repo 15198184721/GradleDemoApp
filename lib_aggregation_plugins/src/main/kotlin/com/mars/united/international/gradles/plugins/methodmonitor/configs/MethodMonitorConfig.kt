@@ -12,7 +12,7 @@ open class MethodMonitorConfig : BaseExtensionConfig() {
      * 是否启用统计，默认启用
      *  T:启用，F:禁用
      */
-    var isEnableMonitor:Boolean = true
+    var enableMonitor:Boolean = true
 
     /**
      * 跳过构造方法
@@ -79,6 +79,7 @@ open class MethodMonitorConfig : BaseExtensionConfig() {
 
     override fun toString(): String {
         return StringBuilder()
+            .append("\tenableMonitor=$enableMonitor \n")
             .append("\tjumpOverConstructionMethod=$jumpOverConstructionMethod \n")
             .append("\tjumpOverClinitMethod=$jumpOverClinitMethod \n")
             .append("\tonlyAllowedThread=$onlyAllowedMainThread \n")

@@ -7,18 +7,18 @@ plugins {
 
 MethodMonitorConfig {
     // 是否启用统计功能
-//    isEnableMonitor = true
+    enableMonitor = false
     // 是否跳过class加载方法
 //    jumpOverClinitMethod = true
     // 是否跳过构造方法
 //    jumpOverConstructionMethod = true
     onlyAllowedMainThread = false
     // 是否需要输出调用栈
-    logPrintCallStack = true
+    logPrintCallStack = false
     // 是否开启日志简略模式(简略模式下详细数据不生效)
     logAbbreviatedMode = false
     // 日志筛选模式
-//    logFilterMode = false
+    logFilterMode = true
     // 日志tag
     logTag = 'methodTag'
     // 方法曹氏阈值
@@ -27,7 +27,8 @@ MethodMonitorConfig {
     logWhiteList = []
     // 计时统计范围定义，只有包含此包下的class才会被处理
     processPackages = [
-            'com.test.gradledemoapp'
+            'com.test.gradledemoapp',
+            'com.test.lib.jar'
     ]
 }
 
@@ -64,6 +65,8 @@ android {
 }
 
 dependencies {
+
+    implementation files('libs/lib_test_jar.jar')
 
     implementation 'androidx.core:core-ktx:1.7.0'
     implementation 'androidx.appcompat:appcompat:1.6.1'
